@@ -58,6 +58,14 @@ export async function generateEmbedding<T = string>(
     return createNormalized(getData(result));
 }
 
+async function generateEmbeddingsChunk<T>(
+    model: EmbeddingModel<T>,
+    value: T[],
+): Promise<NormalizedEmbedding[]> {
+    const result = await model.generateEmbedding(value);
+    return getData(result).map(createNormalized);
+}
+
 /**
  * Generate embeddings in parallel
  * @param model
@@ -70,10 +78,17 @@ export async function generateEmbeddings<T = string>(
     values: T[],
     concurrency?: number,
 ): Promise<NormalizedEmbedding[]> {
+    // TODO: Batch processing has a token limit, should chunk based on that as well.
+    const chunks: T[][] = [];
+    for (let i = 0; i < values.length; i += model.maxBatchSize) {
+        chunks.push(values.slice(i, i + model.maxBatchSize));
+    }
     concurrency ??= 2;
-    return asyncArray.mapAsync(values, concurrency, (v) =>
-        generateEmbedding(model, v),
-    );
+    return (
+        await asyncArray.mapAsync(chunks, concurrency, (chunk) =>
+            generateEmbeddingsChunk(model, chunk),
+        )
+    ).flat();
 }
 
 function isEmbedding<T>(
