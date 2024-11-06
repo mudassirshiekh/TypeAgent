@@ -1,5 +1,5 @@
 # TypeAgent
-
+# By Mudsasir Alam
 **TypeAgent** is **sample code** that explores an architecture for using [TypeChat](https://github.com/microsoft/typechat) to build a _personal agent_ with a _natural language interface_.
 
 **TypeAgent** uses TypeChat to build a set of application agents that **take actions**. Agents define actions using TypeChat schemas.
